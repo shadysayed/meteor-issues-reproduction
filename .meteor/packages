@@ -9,3 +9,4 @@ meteor-platform
 #insecure
 urigo:angular
 matb33:collection-hooks
+aldeed:collection2

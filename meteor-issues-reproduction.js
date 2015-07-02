@@ -1,16 +1,11 @@
 Items = new Mongo.Collection("items");
 
-///////////// Add updatedAt/createdAt properties
-Items.before.insert(function(userId, doc) {
-  doc.createdAt = new Date();
-  doc.updatedAt = doc.createdAt;
-});
-Items.before.update(function(userId, doc, fieldNames, modifier, options){
-  if (modifier.$set == null) {
-      modifier.$set = {};
-    }
-    return modifier.$set.updatedAt = new Date();
-});
+Items.attachSchema(new SimpleSchema({
+  name: {
+    type: String,
+    label: 'Name'
+  }
+}));
 
 Items.allow({
   insert: function(){
@@ -30,13 +25,11 @@ if (Meteor.isClient) {
     .controller('SampleCtrl', [
       '$scope', '$timeout', function($scope, $timeout){
         $scope.$meteorSubscribe('items').then(function(){
-          //Just get an item
-          $scope.item = $scope.$meteorObject(Items, Items.find({}).fetch()[0]._id)
-          // Simulate user editing in a few seconds
-          $timeout(function(){
-            //an infinite update will happen after the following line because the client and server will keep disagreeing on the value of updatedAt.
-            $scope.item.name = "changed name";
-          }, 3000);
+          // Try saving an invalid document (one that has no 'name' propery)
+          // will throw Error: [$rootScope:inprog] $digest already in progress
+          $scope.$meteorCollection(Items).save({description: 'hello ther'}).then(function(){
+            console.log("this will not be reached");
+          });
         });
       }
     ]);
